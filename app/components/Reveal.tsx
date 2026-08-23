@@ -13,11 +13,18 @@ import { useEffect, useRef, useState } from 'react';
 export function Reveal({
   children,
   delay = 0,
+  tilt = 0,
+  deal = false,
   className = '',
   as: Tag = 'div',
 }: {
   children: React.ReactNode;
   delay?: number;
+  /** Degrees of rotation to resolve out of, so a staggered row deals in. */
+  tilt?: number;
+  /** Tip the element forward through 3D on a top-edge hinge as it lands.
+   *  Needs an ancestor carrying `perspective` (see `.deal-grid`). */
+  deal?: boolean;
   className?: string;
   as?: 'div' | 'li' | 'section';
 }) {
@@ -46,8 +53,12 @@ export function Reveal({
     <Tag
       ref={ref as React.Ref<never>}
       data-shown={shown}
+      data-deal={deal || undefined}
       className={`reveal ${className}`}
-      style={{ ['--reveal-delay' as string]: `${delay}ms` }}
+      style={{
+        ['--reveal-delay' as string]: `${delay}ms`,
+        ['--reveal-tilt' as string]: `${tilt}deg`,
+      }}
     >
       {children}
     </Tag>

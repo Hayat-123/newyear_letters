@@ -274,46 +274,195 @@
 }
 
 /* ── Scroll reveal ─────────────────────────────────────────────────────────
-   Cards start lifted and drop into place once the observer marks them shown. */
+   Elements start lifted and drop into place once the observer marks them shown.
+   The optional tilt is what makes a staggered row of cards read as being dealt
+   onto the table rather than as six boxes sliding down in formation. */
 .reveal {
   opacity: 0;
-  transform: translateY(-2.75rem) scale(0.97);
+  transform: translateY(-3rem) rotate(var(--reveal-tilt, 0deg)) scale(0.96);
   transition:
-    opacity 0.55s ease,
-    transform 0.75s cubic-bezier(0.2, 1.1, 0.35, 1);
+    opacity 0.5s ease,
+    transform 0.8s cubic-bezier(0.2, 1.12, 0.32, 1);
   transition-delay: var(--reveal-delay, 0ms);
 }
 
+/* The card variant tips forward on a hinge at its top edge and pulls into focus
+   as it lands, so a staggered row reads as cards being dealt onto a table. It
+   needs the perspective on `.deal-grid` to be worth anything: without an
+   ancestor perspective, rotateX only squashes the card vertically.
+
+   This has to sit ABOVE the resolved state below. Both selectors carry the same
+   specificity, so source order is the only thing separating them, and with this
+   rule last the cards stay tipped and blurred forever. */
+.reveal[data-deal="true"] {
+  transform: translateY(-3.5rem) rotateX(-26deg) rotate(var(--reveal-tilt, 0deg)) scale(0.93);
+  transform-origin: 50% 0%;
+  filter: blur(7px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.95s cubic-bezier(0.16, 1.06, 0.3, 1),
+    filter 0.6s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* The resolved state, shared by both variants. Keep it last. */
 .reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.deal-grid {
+  perspective: 1400px;
+  perspective-origin: 50% 0%;
+}
+
+/* ── Project cards ─────────────────────────────────────────────────────────
+   A photo card with its title sitting on the image, and the detail riding up
+   over the photo on click. Expanding over the picture rather than pushing the
+   card taller is what keeps the grid from lurching every time a row opens. */
+.card {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid #ffffff21;
+  background: var(--color-deep);
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease,
+    box-shadow 0.4s ease;
+}
+
+.card:hover {
+  transform: translateY(-0.4rem);
+  border-color: #ffcd6866;
+  box-shadow: 0 1.5rem 3rem -1rem #00000059;
+}
+
+.card:hover .card-media {
+  transform: scale(1.07);
+}
+
+/* Reads the photo down into darkness so the title stays legible over whatever
+   image ends up here. */
+.card-scrim {
+  background: linear-gradient(
+    to top,
+    #001a47f2 0%,
+    #001a47cc 26%,
+    #001a4740 52%,
+    transparent 78%
+  );
+}
+
+.card-panel {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #001a47f2;
+  backdrop-filter: blur(20px);
+  transform: translateY(101%);
+  /* Overshoots a touch on the way up and settles, which is what stops it
+     reading as a rectangle being dragged into place. */
+  transition: transform 0.55s cubic-bezier(0.18, 1.14, 0.3, 1);
+}
+
+/* Gold hairline that draws itself across the panel's top edge as it arrives,
+   rather than being a border that is simply there once it lands. */
+.card-panel::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+  transform: scaleX(0);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+}
+
+.card[data-open="true"] .card-panel {
+  transform: translateY(0);
+}
+
+.card[data-open="true"] .card-panel::before {
+  transform: scaleX(1);
+}
+
+/* The panel's contents rise in behind it on a stagger, so the detail assembles
+   rather than arriving pre-formed with the surface it sits on. */
+.card-panel > *,
+.card-panel li {
+  opacity: 0;
+  transform: translateY(0.6rem);
+  transition:
+    opacity 0.35s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card[data-open="true"] .card-panel > *,
+.card[data-open="true"] .card-panel li {
   opacity: 1;
   transform: none;
 }
 
+.card[data-open="true"] .card-panel > *:nth-child(1) { transition-delay: 0.2s; }
+.card[data-open="true"] .card-panel > *:nth-child(2) { transition-delay: 0.26s; }
+.card[data-open="true"] .card-panel > *:nth-child(3) { transition-delay: 0.3s; }
+.card[data-open="true"] .card-panel > *:nth-child(4) { transition-delay: 0.42s; }
+.card[data-open="true"] .card-panel li:nth-child(1) { transition-delay: 0.34s; }
+.card[data-open="true"] .card-panel li:nth-child(2) { transition-delay: 0.38s; }
+.card[data-open="true"] .card-panel li:nth-child(3) { transition-delay: 0.42s; }
+.card[data-open="true"] .card-panel li:nth-child(4) { transition-delay: 0.46s; }
+
+/* The photograph pushes in and darkens as the detail takes over the card. */
+.card[data-open="true"] .card-media {
+  transform: scale(1.12);
+  filter: brightness(0.55) saturate(0.8);
+}
+
+.card-media {
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.5s ease;
+}
+
 /* ── Reduced motion ────────────────────────────────────────────────────────
-   Everything above is decoration. Under prefers-reduced-motion the page still
-   has to arrive fully readable, so entrances resolve to their end state and the
-   flowers stop falling entirely rather than merely slowing down. */
+   Scoped deliberately narrowly. The blanket "kill every animation" rule that
+   used to live here also killed the opening, and on this page the fist bump and
+   the headline arriving are the content, not decoration around it. WCAG 2.3.3
+   is about motion that is *not* essential, so the hero plays for everyone.
+
+   What does come off is the motion that runs forever with no user intent behind
+   it: the petals falling on a loop, and the hover lifts. Those are the ones that
+   actually cause trouble, and none of them carry meaning. Note that Windows
+   reports this preference whenever "Animation effects" is switched off in
+   Settings > Accessibility > Visual effects, which is a performance toggle far
+   more often than an accessibility one, so a heavy hand here silently flattens
+   the page for a lot of people who never asked for it. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-
+  /* Scroll reveals land immediately rather than sliding. */
   .reveal {
     opacity: 1;
     transform: none;
+    transition: none;
   }
 
-  /* The petals have nowhere sensible to rest: freezing their fall leaves a row
-     of flowers stuck along the top edge, so the layer comes out altogether. */
+  /* The petals have nowhere sensible to rest, and freezing them leaves a row of
+     flowers stuck along the top edge, so the layer comes out altogether. */
   .petal-layer {
     display: none;
+  }
+
+  .card:hover {
+    transform: none;
   }
 }
