@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { Reveal } from './Reveal';
 import { ZemenayLogo } from './ZemenayLogo';
 
@@ -12,6 +13,20 @@ const CONTACT = [
   { label: 'Email', value: 'zemenaytechsolutions@gmail.com', href: 'mailto:zemenaytechsolutions@gmail.com' },
   { label: 'Site', value: 'zemenaytech.com', href: 'https://zemenaytech.com' },
   { label: 'Where', value: 'Bole, Addis Ababa, Ethiopia' },
+];
+
+// Where each landed flower sits on the meadow band, as
+// [left %, top %, size px, rotation, seconds after the band is first seen].
+// The delays run out to half a minute so the field fills in while you read the
+// contact details rather than arriving all at once.
+const SETTLED: [number, number, number, number, number][] = [
+  [8, 30, 30, -18, 0.6],
+  [24, 16, 22, 24, 4],
+  [41, 38, 34, -8, 9],
+  [58, 20, 26, 15, 14],
+  [72, 44, 20, -25, 19],
+  [88, 26, 30, 10, 25],
+  [33, 58, 24, -32, 31],
 ];
 
 const SOCIAL = [
@@ -97,11 +112,40 @@ export function Closing() {
           for using it. Its top edge is already faded to transparent in the
           asset itself, so it grows out of the blue rather than butting
           against it. */}
-      <div
-        aria-hidden
-        className="h-[clamp(9rem,24vw,17rem)] w-full bg-cover bg-bottom"
-        style={{ backgroundImage: 'url(/art/meadow.png)' }}
-      />
+      <Reveal>
+        <div
+          aria-hidden
+          className="relative h-[clamp(9rem,24vw,17rem)] w-full bg-cover bg-bottom"
+          style={{ backgroundImage: 'url(/art/meadow.png)' }}
+        >
+          {/* Flowers coming to rest. Everything above has petals falling past
+              the bottom of the screen forever; here they finally land, one at a
+              time over the half-minute or so someone spends at the foot of the
+              page, so the motif closes instead of looping. */}
+          {SETTLED.map(([left, top, size, rot, delay], i) => (
+            <span
+              key={i}
+              className="settle-petal absolute"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                width: size,
+                height: size,
+                ['--settle-rot' as string]: `${rot}deg`,
+                ['--settle-delay' as string]: `${delay}s`,
+              }}
+            >
+              <Image
+                src="/art/adey.png"
+                alt=""
+                width={256}
+                height={256}
+                className="h-full w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+              />
+            </span>
+          ))}
+        </div>
+      </Reveal>
     </footer>
   );
 }

@@ -18,13 +18,23 @@ plain `npm run dev`.
 Edit `app/data/projects.ts`. Six entries are seeded as placeholders. Add or
 remove freely, the grid reflows for any count.
 
-Drop a photo for each into `public/projects/` and point `image` at it. Landscape
-works best: cards crop to 16:10 and centre the shot, so keep the subject away
-from the very edges. Any card without a usable photo renders a labelled empty
-frame naming the file it is waiting for, so a half-filled deck still looks
-deliberate.
+Drop a photo for each into `public/projects/` and point `image` at it. The photo
+is centre-cropped, so keep the subject away from the very edges. The first entry
+renders as the wide feature card at the top of the grid and crops to 16:9, so
+give that one a landscape shot; the rest crop to 4:5 and suit portrait or square
+originals.
 
-### 2. The presenter video
+Any card without a usable photo falls back to its index numeral at full bleed
+and names the file it is waiting for, so a half-filled deck still looks
+deliberate rather than broken.
+
+### 2. The services list
+
+`app/data/services.ts` holds the six offerings shown under "what we do", with
+copy and links tracking the live pages on zemenaytech.com. Nothing to add here
+unless the offering set changes.
+
+### 3. The presenter video
 
 The clip is composited straight onto the blue, so it needs a real alpha channel.
 Two encodings are required, because Safari cannot decode alpha WebM and Chrome
@@ -39,7 +49,7 @@ cannot decode HEVC:
 Until both exist the section shows a panel saying so rather than a broken
 player.
 
-### 3. TAN Nimbus
+### 4. TAN Nimbus
 
 The hero word is meant to be set in TAN Nimbus, a licensed face from TAN Type
 that cannot be committed here. Put the file at `public/fonts/TAN-NIMBUS.woff2`

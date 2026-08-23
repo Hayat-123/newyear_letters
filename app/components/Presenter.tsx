@@ -74,11 +74,8 @@ export function Presenter() {
         <Reveal>
           <p className="overline">In their own words</p>
           <h2 className="mx-auto mt-3 max-w-2xl h2">
-            A minute on what Zemenay is
+            Our product manager, without the slide deck
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[clamp(0.98rem,3vw,1.1rem)] leading-relaxed text-ink-3">
-            Our product manager, without the slide deck.
-          </p>
         </Reveal>
 
         <Reveal delay={120} className="mt-[clamp(2rem,6vh,3.5rem)]">

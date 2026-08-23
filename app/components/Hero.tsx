@@ -1,9 +1,10 @@
 import Image from 'next/image';
 
 /**
- * The opening. PARTNERSHIP recedes from in front of the viewer into the page,
- * then two fists rush in from opposite edges, pull back, and bump. The note
- * lands underneath, once the hands have met.
+ * The opening. PARTNERSHIP comes out of the screen at the viewer, then two
+ * fists slide in from opposite edges, pull back, and bump. On contact the
+ * knuckles throw a handful of adey abeba, which is where every flower falling
+ * down the rest of the page comes from.
  *
  * All of it is CSS keyframes over server-rendered markup, so it plays on the
  * first painted frame instead of waiting for hydration.
@@ -12,7 +13,7 @@ import Image from 'next/image';
  * to every partner on the list, so the second party is always "you".
  */
 
-// One shared clock, so the ring, the glow and the note stay in step if the
+// One shared clock, so the burst, the ring and the note stay in step if the
 // pacing of the opening is ever retuned.
 const T = {
   headline: 0.15,
@@ -23,9 +24,24 @@ const T = {
     return this.fists + this.fistsDur * 0.86;
   },
   get note() {
-    return this.impact + 0.2;
+    return this.impact + 0.25;
   },
 };
+
+// Where each thrown flower ends up: [dx, dy, rotation, size in px, extra delay].
+// Fixed rather than random, because the spray wants to stay balanced across the
+// contact point and a seeded scatter is more machinery than nine values earn.
+const BURST: [string, string, string, number, number][] = [
+  ['-13rem', '-4.5rem', '-190deg', 30, 0],
+  ['-9rem', '-8rem', '150deg', 22, 0.04],
+  ['-5rem', '-9.5rem', '-120deg', 17, 0.09],
+  ['-14rem', '2rem', '210deg', 20, 0.02],
+  ['0rem', '-11rem', '170deg', 26, 0.06],
+  ['5.5rem', '-9rem', '-160deg', 18, 0.09],
+  ['9.5rem', '-7.5rem', '140deg', 24, 0.03],
+  ['13.5rem', '-3.5rem', '-200deg', 29, 0],
+  ['14rem', '2.5rem', '190deg', 19, 0.05],
+];
 
 export function Hero() {
   return (
@@ -51,9 +67,20 @@ export function Hero() {
           PARTNERSHIP
         </h1>
 
+        {/* The greeting itself, at display size. It is the line that makes this
+            read as coming from Addis rather than from anywhere, so it carries
+            real weight instead of sitting below as a footnote. */}
         <p
-          className="mt-4 flex items-center gap-[clamp(0.75rem,3vw,1.5rem)] dg text-[clamp(0.8rem,2.4vw,1.05rem)] tracking-[0.26em] text-ink-2 uppercase"
-          style={{ animation: `rise 0.8s ease-out ${T.headline + 0.75}s both` }}
+          lang="am"
+          className="mt-4 font-[family-name:var(--font-ethiopic)] text-[clamp(1.55rem,6.2vw,3.2rem)] leading-tight font-semibold text-gold"
+          style={{ animation: `rise 0.9s ease-out ${T.headline + 0.6}s both` }}
+        >
+          መልካም አዲስ ዓመት
+        </p>
+
+        <p
+          className="dg mt-4 flex items-center gap-[clamp(0.75rem,3vw,1.5rem)] text-[clamp(0.72rem,2.2vw,0.95rem)] tracking-[0.28em] text-ink-2 uppercase"
+          style={{ animation: `rise 0.8s ease-out ${T.headline + 0.9}s both` }}
         >
           <span>Zemenay</span>
           <span aria-hidden className="text-gold">
@@ -87,9 +114,9 @@ export function Hero() {
           style={{ animation: `bump-right ${T.fistsDur}s cubic-bezier(0.33, 0.9, 0.4, 1) ${T.fists}s both` }}
         />
 
-        {/* Shockwave, on the contact point rather than the box centre: the
-            knuckles meet high in the artwork, with the forearms filling the
-            lower half. */}
+        {/* Everything below fires on the contact point rather than the box
+            centre: the knuckles meet high in the artwork, with the forearms
+            filling the lower half. */}
         <span
           aria-hidden
           className="absolute top-[30%] left-1/2 aspect-square w-[42%] rounded-full border border-gold"
@@ -102,21 +129,37 @@ export function Hero() {
           // clobber the centring translate this element needs to keep.
           style={{ animation: `fade-in 1.2s ease-out ${T.impact}s both, glow-pulse 4.5s ease-in-out ${T.impact + 1.2}s infinite` }}
         />
+
+        {/* The flowers the handshake throws. */}
+        {BURST.map(([dx, dy, rot, size, lag], i) => (
+          <span
+            key={i}
+            aria-hidden
+            className="absolute top-[30%] left-1/2"
+            style={{
+              width: size,
+              height: size,
+              ['--dx' as string]: dx,
+              ['--dy' as string]: dy,
+              ['--rot' as string]: rot,
+              animation: `burst 1.3s cubic-bezier(0.14, 0.8, 0.3, 1) ${T.impact + lag}s both`,
+            }}
+          >
+            <Image src="/art/adey.png" alt="" width={256} height={256} className="h-full w-full" />
+          </span>
+        ))}
       </div>
 
       {/* The note, landing after the hands have met. */}
       <div
-        className="relative z-10 mt-[clamp(1.5rem,4vh,2.75rem)] max-w-lg text-center"
+        className="relative z-10 mt-[clamp(1.25rem,3.5vh,2.25rem)] max-w-lg text-center"
         style={{ animation: `rise 0.9s ease-out ${T.note}s both` }}
       >
-        <p className="text-[clamp(1.02rem,3.4vw,1.25rem)] leading-relaxed text-ink-2">
+        <p className="text-[clamp(1rem,3.3vw,1.18rem)] leading-relaxed text-ink-2">
           Whatever we built this year, we did not build it alone. Here is to the
           next one, side by side.
         </p>
-        <p className="mt-5 font-[family-name:var(--font-ethiopic)] text-[clamp(1.15rem,4vw,1.55rem)] font-semibold text-gold">
-          መልካም አዲስ ዓመት
-        </p>
-        <p className="overline mt-2.5 text-ink-3">From everyone at Zemenay</p>
+        <p className="overline mt-3 text-ink-3">From everyone at Zemenay</p>
       </div>
     </section>
   );

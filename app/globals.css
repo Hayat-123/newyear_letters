@@ -69,15 +69,28 @@
     scroll-behavior: smooth;
   }
 
+  /* The page is the story of Meskerem: the rains ending and the hills turning.
+     The base gradient spans the whole document rather than the viewport, so
+     scrolling walks it from the deepest navy at the hero down through dusk and
+     into the green the meadow photograph opens on. The radial washes on top
+     keep the upper half feeling lit. */
   body {
     margin: 0;
     min-height: 100svh;
     overflow-x: clip;
     background:
-      radial-gradient(125% 72% at 50% -12%, #005bdb45 0%, transparent 60%),
-      radial-gradient(85% 50% at 10% 26%, #004aad4d 0%, transparent 62%),
-      radial-gradient(75% 48% at 90% 66%, #3b82f629 0%, transparent 62%),
-      var(--color-navy);
+      radial-gradient(125% 60% at 50% -12%, #005bdb45 0%, transparent 55%),
+      radial-gradient(85% 34% at 10% 16%, #004aad4d 0%, transparent 60%),
+      radial-gradient(75% 30% at 90% 42%, #3b82f629 0%, transparent 60%),
+      linear-gradient(
+        180deg,
+        #001a47 0%,
+        #001a47 26%,
+        #002357 48%,
+        #063a5d 70%,
+        #12494f 86%,
+        #1c4a3a 100%
+      );
   }
 
   ::selection {
@@ -211,9 +224,51 @@
   to   { transform: translate(-50%, -50%) scale(1); opacity: 0; border-width: 0.5px; }
 }
 
+/* Adey abeba thrown out of the knuckles on contact. The bump and the flowers
+   were two unrelated ideas sharing a page until this tied them together: the
+   petals that rain down the rest of the site are the ones the handshake threw.
+   Each sprite carries its own --dx / --dy / --rot so one keyframe set serves
+   the whole burst. */
+@keyframes burst {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.15) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
+      scale(1) rotate(var(--rot));
+  }
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(1.25rem); }
   to   { opacity: 1; transform: none; }
+}
+
+/* Flowers coming to rest on the meadow. They arrive one at a time over the
+   half-minute or so someone spends at the foot of the page, so the falling
+   petals finally land somewhere instead of dropping past the bottom edge
+   forever. The animation is keyed off the reveal so the count starts when the
+   section is actually looked at, not at page load. */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(-1.5rem) rotate(var(--settle-rot, 0deg)) scale(0.7); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) rotate(var(--settle-rot, 0deg)) scale(1); }
+}
+
+.settle-petal {
+  opacity: 0;
+}
+
+.reveal[data-shown="true"] .settle-petal {
+  animation: settle 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--settle-delay, 0s) both;
 }
 
 /* Opacity-only entrance, for elements whose transform is already carrying a

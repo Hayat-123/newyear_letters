@@ -34,6 +34,10 @@ export function Projects() {
             <Reveal
               as="li"
               key={project.id}
+              // The lead project runs the full width of the grid. Six identical
+              // tiles read as a spreadsheet; one feature gives the section a
+              // place for the eye to start.
+              className={i === 0 ? 'lg:col-span-2' : undefined}
               // Stagger in reading order, and alternate the tilt so the row
               // lands like dealt cards instead of sliding down in formation.
               delay={i * 100}
@@ -43,6 +47,7 @@ export function Projects() {
               <Card
                 project={project}
                 index={i + 1}
+                feature={i === 0}
                 isOpen={open === project.id}
                 onToggle={() => setOpen(open === project.id ? null : project.id)}
               />
@@ -57,11 +62,14 @@ export function Projects() {
 function Card({
   project,
   index,
+  feature = false,
   isOpen,
   onToggle,
 }: {
   project: Project;
   index: number;
+  /** Renders wide and landscape as the lead card of the grid. */
+  feature?: boolean;
   isOpen: boolean;
   onToggle: () => void;
 }) {
@@ -81,13 +89,19 @@ function Card({
         aria-controls={`panel-${project.id}`}
         className="block w-full cursor-pointer text-left"
       >
-        <span className="relative block aspect-[4/5] overflow-hidden">
+        <span
+          className={`relative block overflow-hidden ${feature ? 'aspect-[16/9]' : 'aspect-[4/5]'}`}
+        >
           {hasPhoto ? (
             <Image
               src={project.image as string}
               alt={project.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes={
+                feature
+                  ? '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 66vw'
+                  : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+              }
               className="card-media object-cover"
               onError={() => setImageFailed(true)}
             />
@@ -96,7 +110,7 @@ function Card({
                falls back to the index numeral at full bleed, which still looks
                like a designed card in a deck that is only half filled. */
             <span className="card-media absolute inset-0 flex items-center justify-center bg-[radial-gradient(120%_80%_at_50%_0%,#004aad_0%,#00204f_70%)]">
-              <span className="dg text-[7rem] leading-none text-white/8 select-none">
+              <span className={`dg leading-none text-white/8 select-none ${feature ? 'text-[10rem]' : 'text-[7rem]'}`}>
                 {number}
               </span>
             </span>
@@ -115,7 +129,9 @@ function Card({
           {/* Title block, sitting on the photo. */}
           <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 px-5 pb-5">
             <span className="block">
-              <span className="dg block text-[1.3rem] leading-tight">{project.title}</span>
+              <span className={`dg block leading-tight ${feature ? 'text-[1.75rem]' : 'text-[1.3rem]'}`}>
+                {project.title}
+              </span>
               <span className="mt-1.5 block text-[0.82rem] leading-relaxed text-ink-3">
                 {project.blurb}
               </span>
