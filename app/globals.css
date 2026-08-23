@@ -1,26 +1,319 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ── Type ──────────────────────────────────────────────────────────────────
+   The hero word is set in TAN Nimbus, which is a licensed face from TAN Type
+   and so is not committed here. Drop the file in as
+   public/fonts/TAN-NIMBUS.woff2 (or .otf) and it takes over on next load.
+   Until then the stack falls through to Righteous, which carries the same
+   retro-deco weight, so nothing looks broken while the licence is sorted. */
+@font-face {
+  font-family: "TAN Nimbus";
+  src: url("/fonts/TAN-NIMBUS.woff2") format("woff2"),
+       url("/fonts/TAN-NIMBUS.otf") format("opentype");
+  font-weight: 400 900;
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Zemenay's own heading face, the same file the marketing site serves. */
+@font-face {
+  font-family: "Degular Display";
+  src: url("/fonts/degular-display-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (prefers-color-scheme: dark) {
+/* ── Zemenay brand ─────────────────────────────────────────────────────────
+   Taken from the marketing site's tokens rather than the internal workspace
+   app, so this reads as Zemenay and not as one product inside it. The page
+   sits at the dark end of the same blues: the cut-out fists and the glowing
+   petals need a dark ground to read against, and #00307A / #004AAD are the
+   brand's own dark accents. Gold #FFCD68 is the brand accent, and it happens
+   to sit a hair from the adey abeba's own yellow. */
+@theme {
+  --color-navy: #001a47;
+  --color-deep: #00307a;
+  --color-accent: #004aad;
+  --color-primary: #005bdb;
+  --color-sky: #3b82f6;
+  --color-cyan: #60a5fa;
+
+  --color-gold: #ffcd68;
+  --color-adey: #ffe03a;
+
+  --color-ink: #ffffff;
+  --color-ink-2: #d6e4ff;
+  --color-ink-3: #93aee0;
+
+  --font-hero: "TAN Nimbus", var(--font-righteous), "Degular Display", system-ui, sans-serif;
+  --font-display: "Degular Display", var(--font-inter), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-ethiopic: var(--font-ethiopic), var(--font-inter), system-ui, sans-serif;
+}
+
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+    /* Width of the assembled fist-bump pair. The halves and the impact ring
+       all size off this one value so they can never drift apart. Capped against
+       the viewport rather than a rem floor: a fixed minimum wider than a small
+       phone pushes the forearms off both edges at once. */
+    --pair: min(92vw, 50rem);
+  }
+
+  html {
+    background-color: var(--color-navy);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    overflow-x: clip;
+    background:
+      radial-gradient(125% 72% at 50% -12%, #005bdb45 0%, transparent 60%),
+      radial-gradient(85% 50% at 10% 26%, #004aad4d 0%, transparent 62%),
+      radial-gradient(75% 48% at 90% 66%, #3b82f629 0%, transparent 62%),
+      var(--color-navy);
+  }
+
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-navy);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .shell {
+    width: min(72rem, 100% - 2.5rem);
+    margin-inline: auto;
+  }
+
+  /* Small tracked label above every section heading. Set in Degular with a
+     wide letterspace, which is the marketing site's own overline treatment. */
+  .overline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--color-cyan);
+  }
+
+  /* Everything set in Degular. Its space glyph is narrow, so the word-spacing
+     nudge belongs with the family rather than being repeated per element. */
+  .dg {
+    font-family: var(--font-display);
+    word-spacing: 0.08em;
+  }
+
+  /* Section headings. Degular is a display face, so it wants tight tracking
+     and tight leading at these sizes. */
+  .h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+    /* Degular's space glyph is narrow, and at display sizes with negative
+       tracking the words start running into each other. */
+    word-spacing: 0.1em;
+  }
+
+  .glass {
+    background: linear-gradient(180deg, #ffffff12 0%, #ffffff05 100%);
+    border: 1px solid #ffffff21;
+    border-radius: 1.25rem;
+    backdrop-filter: blur(18px);
+  }
+}
+
+/* ── Hero entrance ─────────────────────────────────────────────────────────
+   The whole opening is CSS keyframes over server-rendered markup, so it starts
+   painting on the first frame with no hydration wait and no animation library. */
+
+/* The headline comes out of the screen at the viewer. It starts far back and
+   small, rushes forward, punches past the screen plane at 72%, then eases back
+   to its resting size.
+   translateZ against the parent's perspective does the depth for real rather
+   than faking it with scale, which is what makes the overshoot read as the word
+   arriving in the room instead of a box getting bigger. The blur clearing on
+   the way in is focus pulling, and the letterspace opening out is the word
+   filling the space it has just claimed. */
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateZ(-900px);
+    filter: blur(16px);
+    letter-spacing: -0.04em;
+  }
+  45% {
+    opacity: 1;
+  }
+  72% {
+    transform: translateZ(190px);
+    filter: blur(0);
+    letter-spacing: 0.03em;
+  }
+  to {
+    opacity: 1;
+    transform: translateZ(0);
+    filter: blur(0);
+    letter-spacing: 0.01em;
+  }
+}
+
+/* The bump, in four beats: the hands rush in from their own edge, slow as they
+   close, pull back for the wind-up, then snap together. The pull-back at 68%
+   is what makes it read as two people about to bump rather than two images
+   sliding to a stop.
+
+   The start offset is calc(-50vw - 100%) rather than a plain percentage: that
+   is exactly far enough to park the hand's inner edge on the screen edge at
+   any viewport width, so the left hand always genuinely enters from the left
+   edge and the right hand from the right, instead of merely from somewhere
+   outside its own box.
+
+   The motion is horizontal only: no scale and no rotation, so the hands read
+   as sliding in across the page. The headline is the one element with depth. */
+@keyframes bump-left {
+  from { transform: translate3d(calc(-50vw - 100%), 0, 0); opacity: 0; }
+  15%  { opacity: 1; }
+  52%  { transform: translate3d(-9%, 0, 0); }
+  66%  { transform: translate3d(-18%, 0, 0); }
+  86%  { transform: translate3d(1.5%, 0, 0); }
+  94%  { transform: translate3d(-0.8%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+
+@keyframes bump-right {
+  from { transform: translate3d(calc(50vw + 100%), 0, 0); opacity: 0; }
+  15%  { opacity: 1; }
+  52%  { transform: translate3d(9%, 0, 0); }
+  66%  { transform: translate3d(18%, 0, 0); }
+  86%  { transform: translate3d(-1.5%, 0, 0); }
+  94%  { transform: translate3d(0.8%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+
+/* Shockwave, fired on the frame the knuckles meet. */
+@keyframes impact {
+  from { transform: translate(-50%, -50%) scale(0.1); opacity: 0.9; border-width: 3px; }
+  to   { transform: translate(-50%, -50%) scale(1); opacity: 0; border-width: 0.5px; }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(1.25rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Opacity-only entrance, for elements whose transform is already carrying a
+   layout job (centring, for instance) that an animated transform would erase. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+
+/* ── Falling adey abeba ────────────────────────────────────────────────────
+   Three animations per flower so each part can run on its own clock: `drift`
+   moves the wrapper down the page, `spin` turns the petal inside it, and
+   `bloom-shift` is the colour trick. */
+@keyframes drift {
+  from { transform: translate3d(0, -16vh, 0); }
+  to   { transform: translate3d(var(--sway, 6vw), 116vh, 0); }
+}
+
+/* The rotateY component stops at 50 degrees each way instead of going all the
+   way round. A full Y rotation passes through edge-on, where a flat image
+   collapses to a one-pixel line and reads as a scratch on the screen rather
+   than as a tumbling flower. */
+@keyframes spin {
+  from { transform: rotate(0deg) rotateY(-50deg); }
+  50%  { transform: rotate(calc(var(--turn, 360deg) / 2)) rotateY(50deg); }
+  to   { transform: rotate(var(--turn, 360deg)) rotateY(-50deg); }
+}
+
+/* The colour trick. The petal falls as the real yellow adey abeba and is
+   Zemenay blue by the time it reaches the bottom.
+   Two finished images are stacked and cross-faded rather than one image being
+   pushed through a hue-rotate: a filter sweep on a saturated yellow drags it
+   through green on the way out and overshoots into violet on the way in, and
+   neither is a colour this page has any business showing. `bloom-fade` dissolves
+   the yellow layer off the blue one underneath, and the flash covers the swap. */
+@keyframes bloom-fade {
+  0%, 44%   { opacity: 1; }
+  53%, 100% { opacity: 0; }
+}
+
+/* White burst at the moment of the change, so it reads as a trick rather than
+   as a slow tint. */
+@keyframes bloom-flash {
+  0%, 40%   { opacity: 0; transform: scale(0.5); }
+  48%       { opacity: 0.95; transform: scale(1.5); }
+  62%, 100% { opacity: 0; transform: scale(2.2); }
+}
+
+/* The blue petal picks up its own glow once it is the one on show. */
+@keyframes bloom-glow {
+  0%, 46%   { filter: none; }
+  58%, 100% { filter: drop-shadow(0 0 10px #3b82f699); }
+}
+
+/* ── Scroll reveal ─────────────────────────────────────────────────────────
+   Cards start lifted and drop into place once the observer marks them shown. */
+.reveal {
+  opacity: 0;
+  transform: translateY(-2.75rem) scale(0.97);
+  transition:
+    opacity 0.55s ease,
+    transform 0.75s cubic-bezier(0.2, 1.1, 0.35, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────
+   Everything above is decoration. Under prefers-reduced-motion the page still
+   has to arrive fully readable, so entrances resolve to their end state and the
+   flowers stop falling entirely rather than merely slowing down. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The petals have nowhere sensible to rest: freezing their fall leaves a row
+     of flowers stuck along the top edge, so the layer comes out altogether. */
+  .petal-layer {
+    display: none;
+  }
 }

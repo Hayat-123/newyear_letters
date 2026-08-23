@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zemenay Enkutatash
 
-## Getting Started
-
-First, run the development server:
+A one-page new year note sent to partner companies ahead of Meskerem 1, 2019 E.C.
+(11 September 2026). It never names the company reading it, so the same URL goes
+to the whole list.
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Runs on http://localhost:4500 via the project launch config, or port 3000 with a
+plain `npm run dev`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What still needs filling in
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. The projects
 
-## Learn More
+Edit `app/data/projects.ts`. Six entries are seeded as placeholders. Add or
+remove freely, the grid reflows for any count.
 
-To learn more about Next.js, take a look at the following resources:
+Drop a photo for each into `public/projects/` and point `image` at it. Landscape
+works best: cards crop to 16:10 and centre the shot, so keep the subject away
+from the very edges. Any card without a usable photo renders a labelled empty
+frame naming the file it is waiting for, so a half-filled deck still looks
+deliberate.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 2. The presenter video
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The clip is composited straight onto the blue, so it needs a real alpha channel.
+Two encodings are required, because Safari cannot decode alpha WebM and Chrome
+cannot decode HEVC:
 
-## Deploy on Vercel
+| File | Codec | Plays in |
+| --- | --- | --- |
+| `public/media/pm-intro.webm` | VP9 or AV1 with alpha | Chrome, Edge, Firefox |
+| `public/media/pm-intro.mov` | HEVC with alpha (`hvc1`) | Safari |
+| `public/media/pm-poster.png` | still frame, optional | before playback starts |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Until both exist the section shows a panel saying so rather than a broken
+player.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 3. TAN Nimbus
+
+The hero word is meant to be set in TAN Nimbus, a licensed face from TAN Type
+that cannot be committed here. Put the file at `public/fonts/TAN-NIMBUS.woff2`
+(or `.otf`) and it takes over on the next load, no code change needed. Until
+then the stack falls through to Righteous, which carries a similar retro-deco
+weight.
+
+## The artwork
+
+`public/art/` is generated, not hand-made. `npm run art` rebuilds it from the
+source photographs in `D:/site_pics` (override with `ART_SRC`):
+
+- **`fist-left.png` / `fist-right.png`** are cut out of the announcement graphic
+  by flood-filling the charcoal background inward from the border, then split on
+  the seam where the two fists meet. Butting them edge to edge rebuilds the
+  original drawing, which is how the hero assembles.
+- **`adey.png` / `adey-blue.png`** are the falling flower in its own yellow and
+  in Zemenay blue. The page cross-fades between the two rather than running a
+  CSS `hue-rotate`, which drags a saturated yellow through green on the way out
+  and overshoots into violet on the way in.
+- **`meadow.png`** is the adey abeba field in its own colours, faded to nothing
+  along its top edge so it grows out of the blue.
+- **`bokeh.jpg`** is the macro bloom thrown out of focus, sitting behind the
+  presenter video.
+
+## Brand
+
+Colours and the Degular Display heading face come from the marketing site
+(`Zemenay-Revamped-2026`), not from the internal workspace app, so this reads as
+Zemenay rather than as one product inside it. The page sits at the dark end of
+the same palette because the cut-out fists and the glowing petals need a dark
+ground. Tokens live at the top of `app/globals.css`.
+
+## Motion
+
+Every entrance is CSS keyframes over server-rendered markup, so the opening
+plays on the first painted frame with no hydration wait and no animation
+library. Under `prefers-reduced-motion` the entrances resolve to their end state
+and the petal layer is removed entirely.
