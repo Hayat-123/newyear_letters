@@ -59,21 +59,29 @@ weight.
 
 ## The artwork
 
-`public/art/` is generated, not hand-made. `npm run art` rebuilds it from the
-source photographs in `D:/site_pics` (override with `ART_SRC`):
+`public/art/` is generated, not hand-made. `npm run art` rebuilds every file in
+it from two source folders: the announcement graphic in `D:/site_pics`
+(override with `ART_SRC`) and the illustration pack in
+`D:/Telegram Desktop/Adeweb Developer Africa` (override with `ART_PACK`).
 
 - **`fist-left.png` / `fist-right.png`** are cut out of the announcement graphic
   by flood-filling the charcoal background inward from the border, then split on
   the seam where the two fists meet. Butting them edge to edge rebuilds the
   original drawing, which is how the hero assembles.
 - **`adey.png` / `adey-blue.png`** are the falling flower in its own yellow and
-  in Zemenay blue. The page cross-fades between the two rather than running a
-  CSS `hue-rotate`, which drags a saturated yellow through green on the way out
-  and overshoots into violet on the way in.
-- **`meadow.png`** is the adey abeba field in its own colours, faded to nothing
-  along its top edge so it grows out of the blue.
-- **`bokeh.jpg`** is the macro bloom thrown out of focus, sitting behind the
-  presenter video.
+  in Zemenay blue. The page hard-cuts between the two behind a white flash
+  rather than running a CSS `hue-rotate`, which drags a saturated yellow through
+  green on the way out and overshoots into violet on the way in.
+- **`meadow-grow.webp`** is the field at the foot of the page, assembled wide
+  from one tall cut-out by flipping and rescaling copies. Its ragged top edge is
+  the whole point: stems and heads break into the open green so the field grows
+  out of the page rather than being a rectangle of photograph pasted across the
+  bottom.
+- **`woman.webp`** stands in that field, behind the band so the front row of
+  flowers crosses her skirt.
+- **`blue-drift.webp`** is the drift of small blue flowers behind the services
+  list, and **`bloom-blur.webp`** is the close-up cluster thrown out of focus
+  behind the presenter video.
 
 ## Brand
 
@@ -87,5 +95,8 @@ ground. Tokens live at the top of `app/globals.css`.
 
 Every entrance is CSS keyframes over server-rendered markup, so the opening
 plays on the first painted frame with no hydration wait and no animation
-library. Under `prefers-reduced-motion` the entrances resolve to their end state
-and the petal layer is removed entirely.
+library. Under `prefers-reduced-motion` the scroll reveals resolve to their end
+state, the petal layer slows to a drift and stops spinning, and the hover lifts
+come off. The opening itself still plays: on this page the fist bump is the
+content, not decoration around it, and Windows reports that preference for
+anyone who has simply switched animation effects off.

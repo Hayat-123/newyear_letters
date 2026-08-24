@@ -58,13 +58,15 @@ export function Presenter() {
 
   return (
     <section id="video" className="relative z-10 py-[clamp(4rem,12vh,8rem)]">
-      {/* Blurred bloom behind the presenter, so a cutout figure has something
-          with depth to stand against instead of flat colour. */}
+      {/* The adey abeba thrown out of focus, so a cutout figure has something with
+          depth to stand against instead of flat colour. Same flower as the
+          falling petals and the closing field, just far enough out of focus to
+          read as light rather than as subject. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[34rem] -translate-y-1/2 opacity-30 [mask-image:radial-gradient(52%_52%_at_50%_50%,#000_0%,transparent_78%)]"
         style={{
-          backgroundImage: 'url(/art/bokeh.jpg)',
+          backgroundImage: 'url(/art/bloom-blur.webp)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

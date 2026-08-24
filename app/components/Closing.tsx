@@ -3,10 +3,13 @@ import { Reveal } from './Reveal';
 import { ZemenayLogo } from './ZemenayLogo';
 
 /**
- * Where to find us. The adey abeba meadow sits behind this section as a blue
- * duotone: a straight photograph of yellow flowers would fight the page, but
- * pushed through the brand blues it reads as the field the falling petals came
- * from.
+ * Where to find us, standing in the adey abeba.
+ *
+ * The page has spent its whole length warming from navy toward green, and this
+ * is where it arrives: a cut-out field growing up off the bottom edge, with the
+ * flowers left their own yellow. Earlier drafts pushed the meadow through the
+ * brand blues to stop it fighting the page, but by the time you reach it the
+ * background has already met it halfway, so the photograph can be itself.
  */
 
 const CONTACT = [
@@ -15,18 +18,18 @@ const CONTACT = [
   { label: 'Where', value: 'Bole, Addis Ababa, Ethiopia' },
 ];
 
-// Where each landed flower sits on the meadow band, as
+// Where each landed flower comes to rest, as
 // [left %, top %, size px, rotation, seconds after the band is first seen].
 // The delays run out to half a minute so the field fills in while you read the
 // contact details rather than arriving all at once.
 const SETTLED: [number, number, number, number, number][] = [
-  [8, 30, 30, -18, 0.6],
-  [24, 16, 22, 24, 4],
-  [41, 38, 34, -8, 9],
-  [58, 20, 26, 15, 14],
-  [72, 44, 20, -25, 19],
-  [88, 26, 30, 10, 25],
-  [33, 58, 24, -32, 31],
+  [7, 14, 26, -18, 0.6],
+  [22, 4, 20, 24, 4],
+  [39, 22, 30, -8, 9],
+  [54, 9, 24, 15, 14],
+  [67, 27, 18, -25, 19],
+  [82, 12, 26, 10, 25],
+  [30, 34, 22, -32, 31],
 ];
 
 const SOCIAL = [
@@ -105,45 +108,69 @@ export function Closing() {
         </Reveal>
       </div>
 
-      {/* The adey abeba field closes the page off, in its own colours. It is a
-          block in the flow rather than a backdrop behind the text: at full
-          strength the photograph is far too bright to read white type over,
-          and dimming it enough to fix that would have thrown away the reason
-          for using it. Its top edge is already faded to transparent in the
-          asset itself, so it grows out of the blue rather than butting
-          against it. */}
+      {/* The adey abeba field closes the page off. The band is a cut-out, not a
+          rectangle of photograph: heads and stems break raggedly into the green
+          above them, so the field grows out of the page instead of being a
+          picture pasted across the bottom with a ruled edge.
+          It was assembled wide from one tall source by flipping and rescaling
+          copies, and the source's huge out-of-focus foreground blooms were
+          cropped off first, because a tile boundary cutting through one of
+          those smooth shapes leaves a seam you cannot miss. */}
       <Reveal>
-        <div
-          aria-hidden
-          className="relative h-[clamp(9rem,24vw,17rem)] w-full bg-cover bg-bottom"
-          style={{ backgroundImage: 'url(/art/meadow.png)' }}
-        >
-          {/* Flowers coming to rest. Everything above has petals falling past
-              the bottom of the screen forever; here they finally land, one at a
-              time over the half-minute or so someone spends at the foot of the
-              page, so the motif closes instead of looping. */}
-          {SETTLED.map(([left, top, size, rot, delay], i) => (
-            <span
-              key={i}
-              className="settle-petal absolute"
-              style={{
-                left: `${left}%`,
-                top: `${top}%`,
-                width: size,
-                height: size,
-                ['--settle-rot' as string]: `${rot}deg`,
-                ['--settle-delay' as string]: `${delay}s`,
-              }}
-            >
-              <Image
-                src="/art/adey.png"
-                alt=""
-                width={256}
-                height={256}
-                className="h-full w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
-              />
-            </span>
-          ))}
+        <div aria-hidden className="relative">
+          {/* She stands behind the band so the front row of flowers crosses her
+              skirt, which is what puts her in the field rather than in front of
+              a picture of one. Hidden on narrow screens, where she would sit on
+              top of the copy rather than beside it. */}
+          <Image
+            src="/art/woman.webp"
+            alt=""
+            width={660}
+            height={1150}
+            // Sized to rise only a little above the field. Taller and she
+            // reaches into the footer copy, where she painted straight over the
+            // social links.
+            className="pointer-events-none absolute right-[4%] bottom-[2rem] z-0 hidden h-[clamp(11rem,21vw,17rem)] w-auto md:block"
+          />
+
+          <div className="relative z-10 h-[clamp(8rem,20vw,15rem)] w-full">
+            <Image
+              src="/art/meadow-grow.webp"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover object-bottom"
+            />
+
+            {/* Flowers coming to rest. Everything above has petals falling past
+                the bottom of the screen forever; here they finally land, one at
+                a time over the half-minute or so someone spends at the foot of
+                the page, so the motif closes instead of looping. They sit in
+                the open green above the field, where a new arrival reads as
+                landing rather than as a sprite dropped on a photograph. */}
+            {SETTLED.map(([left, top, size, rot, delay], i) => (
+              <span
+                key={i}
+                className="settle-petal absolute"
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                  width: size,
+                  height: size,
+                  ['--settle-rot' as string]: `${rot}deg`,
+                  ['--settle-delay' as string]: `${delay}s`,
+                }}
+              >
+                <Image
+                  src="/art/adey.png"
+                  alt=""
+                  width={320}
+                  height={320}
+                  className="h-full w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+                />
+              </span>
+            ))}
+          </div>
         </div>
       </Reveal>
     </footer>

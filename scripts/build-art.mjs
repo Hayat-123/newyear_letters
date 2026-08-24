@@ -5,13 +5,19 @@
  *
  * Sources:
  *   gesture.jpg      the fist-bump announcement graphic the hero art comes from
- *   transparent.png  an adey abeba already cut out against transparency
- *   JOB OFFER LETTER.png / download.jpg   adey abeba meadow photographs
+ * and the illustration pack in ART_PACK:
+ *   3.png  the woman standing in the adey abeba
+ *   4.png  a drift of small blue flowers
+ *   5.png  a close-up cluster of blooms
+ *   6.png  a tall field of adey abeba, cut out against transparency
+ *   7.png  a single adey abeba, cut out
  */
 import sharp from 'sharp';
 import { mkdirSync } from 'node:fs';
 
 const SRC = process.env.ART_SRC || 'D:/site_pics';
+// The commissioned illustration pack: cut-out flowers, fields and the figure.
+const PACK = process.env.ART_PACK || 'D:/Telegram Desktop/Adeweb Developer Africa';
 const OUT = new URL('../public/art/', import.meta.url).pathname.replace(/^\//, '');
 mkdirSync(OUT, { recursive: true });
 
@@ -101,100 +107,125 @@ async function fists() {
 }
 
 /* ── 2. The falling adey abeba ──────────────────────────────────────────────
-   Trimmed to its own bounding box, then padded back to a square so CSS
-   rotation spins around the flower's centre instead of drifting. */
+   The cut-out flower, plus its blue twin for the halfway colour change. */
 async function adey() {
-  // fit:'contain' pads the trimmed bounding box back out to a square in one
-  // step, so CSS rotation spins around the flower's centre instead of drifting.
-  const r = await sharp(`${SRC}/transparent.png`)
-    .trim({ threshold: 8 })
-    .resize(256, 256, {
-      fit: 'contain',
-      kernel: 'lanczos3',
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    })
-    .png({ compressionLevel: 9 })
-    .toFile(`${OUT}adey.png`);
-  log('adey.png', r);
+  const SIZE = 320; // the sprite never renders above ~52px on the page
 
-  /* The same flower in Zemenay blue, for the halfway colour change.
-     Doing this here rather than with a CSS hue-rotate is the difference
-     between landing on the brand blue and landing near it: hue-rotate is a
-     matrix approximation that drags a saturated yellow through green on the
-     way out and overshoots into violet on the way in. Mapping luminance onto a
-     fixed three-stop blue ramp hits the exact colour and never passes through
-     anything else, because the page cross-fades between two finished images
-     instead of interpolating a filter. */
-  const lit = await sharp(`${OUT}adey.png`).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  const { width: W, height: H } = lit.info;
-  const SHADOW = [0, 34, 96];
-  const MID = [0, 91, 219];
-  const LIGHT = [150, 190, 255];
-  const out = Buffer.alloc(W * H * 4);
-  for (let p = 0; p < W * H; p++) {
-    const i = p * 4;
-    // Rec. 601 luma. The flower is mostly yellow, so its green and red
-    // channels carry nearly all the modelling.
-    const t = (0.299 * lit.data[i] + 0.587 * lit.data[i + 1] + 0.114 * lit.data[i + 2]) / 255;
-    const [a, b, k] = t < 0.5 ? [SHADOW, MID, t * 2] : [MID, LIGHT, (t - 0.5) * 2];
-    out[i] = a[0] + (b[0] - a[0]) * k;
-    out[i + 1] = a[1] + (b[1] - a[1]) * k;
-    out[i + 2] = a[2] + (b[2] - a[2]) * k;
-    out[i + 3] = lit.data[i + 3];
+  const lit = await sharp(`${PACK}/7.png`)
+    .trim({ threshold: 1 })
+    .resize(SIZE, SIZE, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+  log('adey.png', await sharp(lit).toFile(`${OUT}adey.png`));
+
+  // Brightness remapped onto a blue ramp rather than hue-rotated. The petal is
+  // so saturated that rotating its hue lands on a green nobody would call
+  // Zemenay blue; mapping luminance keeps the shading and guarantees the brand
+  // colour. The top of the ramp stops well short of white, because at the
+  // petals' resting opacity a pale highlight reads as a grey snowflake.
+  const SHADOW = [0x00, 0x22, 0x5c];
+  const MID = [0x00, 0x54, 0xcc];
+  const HI = [0x5c, 0x9b, 0xff];
+  const { data, info } = await sharp(lit).raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const l = (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) / 255;
+    const [a, b, t] = l < 0.5 ? [SHADOW, MID, l * 2] : [MID, HI, (l - 0.5) * 2];
+    for (let c = 0; c < 3; c++) data[i + c] = Math.round(a[c] + (b[c] - a[c]) * t);
   }
-  const blue = await sharp(out, { raw: { width: W, height: H, channels: 4 } })
+  const blue = await sharp(data, { raw: info })
     .png({ compressionLevel: 9 })
     .toFile(`${OUT}adey-blue.png`);
   log('adey-blue.png', blue);
 }
 
-/* ── 3. Meadow band ─────────────────────────────────────────────────────────
-   The real adey abeba field, left in its own yellows and greens rather than
-   pushed into the brand blue. All the processing does is lift it slightly and
-   fade the top edge to nothing, so the photograph dissolves up into the page
-   instead of sitting in a hard-edged box. */
+/* ── 3. The growing meadow band ─────────────────────────────────────────────
+   A cut-out field for the foot of the page, assembled wide from one tall
+   source. The whole point of the image is the ragged top edge where stems and
+   heads break into open sky, so it must never be stretched flat. */
 async function meadow() {
-  const W = 1600, H = 700;
-  const src = await sharp(`${SRC}/JOB OFFER LETTER.png`)
-    .resize(W, H, { fit: 'cover', position: 'bottom' })
-    .modulate({ saturation: 1.12, brightness: 1.02 })
-    .raw()
-    .toBuffer({ resolveWithObject: true });
+  const W = 1920;
+  const H = 640;
 
-  const ch = src.info.channels;
-  const rgba = Buffer.alloc(W * H * 4);
-  for (let p = 0; p < W * H; p++) {
-    rgba[p * 4] = src.data[p * ch];
-    rgba[p * 4 + 1] = src.data[p * ch + 1];
-    rgba[p * 4 + 2] = src.data[p * ch + 2];
-    const y = (p / W) | 0;
-    rgba[p * 4 + 3] = Math.round(255 * Math.min(1, Math.max(0, (y / H - 0.1) / 0.55)));
+  const src = await sharp(`${PACK}/6.png`).trim({ threshold: 1 }).toBuffer();
+  const { width, height } = await sharp(src).metadata();
+
+  // Drop the bottom third first. Those huge out-of-focus foreground blooms are
+  // single smooth shapes, so wherever a tile boundary cuts one the seam is
+  // impossible to miss; the fine-grained field above tiles without a join.
+  const body = await sharp(src)
+    .extract({ left: 0, top: 0, width, height: Math.round(height * 0.66) })
+    .toBuffer();
+
+  // Every copy is anchored to the bottom so the ground line stays solid. The
+  // varying scales and the flips are what stop the broken top edge from
+  // visibly repeating across the width.
+  const steps = [
+    [0, 1.0, false],
+    [250, 0.86, true],
+    [520, 0.95, false],
+    [790, 0.81, true],
+    [1030, 0.92, false],
+    [1320, 0.88, true],
+    [1600, 0.97, false],
+  ];
+  const tiles = [];
+  for (const [left, scale, flip] of steps) {
+    let t = sharp(body).resize({ height: Math.round(H * scale) });
+    if (flip) t = t.flop();
+    const input = await t.png().toBuffer();
+    const m = await sharp(input).metadata();
+    tiles.push({ input, left, top: H - m.height });
   }
 
-  const r = await sharp(rgba, { raw: { width: W, height: H, channels: 4 } })
-    .png({ compressionLevel: 9, palette: true, quality: 82 })
-    .toFile(`${OUT}meadow.png`);
-  log('meadow.png', r);
+  const r = await sharp({
+    create: { width: W, height: H, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
+  })
+    .composite(tiles)
+    .webp({ quality: 82, alphaQuality: 100, effort: 6 })
+    .toFile(`${OUT}meadow-grow.webp`);
+  log('meadow-grow.webp', r);
 }
 
-/* ── 4. Video-section backdrop ──────────────────────────────────────────────
-   The macro bloom thrown out of focus, so the transparent presenter video has
-   something with depth behind it. Kept in its own colour and darkened rather
-   than tinted blue: the page reads warmer for having one real photograph in it,
-   and the section's own low opacity does the blending. */
-async function bokeh() {
-  const r = await sharp(`${SRC}/Happy New year 2016 Ethiopian calendar.jpg`)
-    .resize(1200, 800, { fit: 'cover' })
-    .blur(26)
-    .modulate({ saturation: 0.95, brightness: 0.7 })
-    .jpeg({ quality: 72, mozjpeg: true })
-    .toFile(`${OUT}bokeh.jpg`);
-  log('bokeh.jpg', r);
+/* ── 4. The figure, the drift, and the blur ─────────────────────────────────
+   WebP throughout. These are large-format artwork carrying alpha, and PNG
+   cannot compress photographic colour: the meadow band alone came to 4.7MB as
+   a PNG, more than the rest of the page put together. */
+async function extras() {
+  log(
+    'woman.webp',
+    await sharp(`${PACK}/3.png`)
+      .trim({ threshold: 1 })
+      .resize({ height: 1150 })
+      .webp({ quality: 90, alphaQuality: 100, effort: 6 })
+      .toFile(`${OUT}woman.webp`),
+  );
+
+  log(
+    'blue-drift.webp',
+    await sharp(`${PACK}/4.png`)
+      .trim({ threshold: 1 })
+      .resize({ width: 1400 })
+      .webp({ quality: 88, alphaQuality: 100, effort: 6 })
+      .toFile(`${OUT}blue-drift.webp`),
+  );
+
+  // The close-up cluster thrown well out of focus, for behind the presenter.
+  // Flattened onto brand blue before blurring, so its transparent ground does
+  // not bleed grey haloes into the petals.
+  log(
+    'bloom-blur.webp',
+    await sharp(`${PACK}/5.png`)
+      .trim({ threshold: 1 })
+      .resize(1400, 1000, { fit: 'cover' })
+      .flatten({ background: '#00307a' })
+      .blur(28)
+      .modulate({ saturation: 0.9 })
+      .webp({ quality: 72 })
+      .toFile(`${OUT}bloom-blur.webp`),
+  );
 }
 
-console.log(`building art from ${SRC} into ${OUT}`);
 await fists();
 await adey();
 await meadow();
-await bokeh();
-console.log('done');
+await extras();

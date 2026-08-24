@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { SERVICES } from '../data/services';
 import { Reveal } from './Reveal';
 
@@ -12,6 +13,19 @@ import { Reveal } from './Reveal';
 export function Services() {
   return (
     <section id="services" className="relative z-10 pt-[clamp(3rem,10vh,6rem)]">
+      {/* A drift of small blue flowers behind the list. It is the same trick the
+          falling petals play, held still: adey abeba in Zemenay blue. Kept very
+          faint and masked to nothing at the edges, so it reads as texture in the
+          background rather than as a picture competing with the type. */}
+      <Image
+        src="/art/blue-drift.webp"
+        alt=""
+        aria-hidden
+        width={1400}
+        height={984}
+        className="pointer-events-none absolute -top-8 right-0 -z-10 w-[min(46rem,80%)] opacity-[0.18] [mask-image:radial-gradient(60%_60%_at_65%_40%,#000_0%,transparent_75%)]"
+      />
+
       <div className="shell">
         <Reveal className="max-w-2xl">
           <p className="overline">What we do</p>
