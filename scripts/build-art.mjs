@@ -159,22 +159,84 @@ async function meadow() {
   // Every copy is anchored to the bottom so the ground line stays solid. The
   // varying scales and the flips are what stop the broken top edge from
   // visibly repeating across the width.
+  // [x on the band, scale, flip, where along the source this copy is cut from].
+  // That last number is what stops the skyline repeating. Flipping and
+  // rescaling one identical crop still puts the same tall flowers at the same
+  // relative spot in every copy, which reads as a regular scalloped wave across
+  // the width; taking a different window of the field each time gives each copy
+  // a different skyline to contribute.
+  // Cutting a narrower window makes each copy narrower too, so they are spaced
+  // more tightly than the full-width version needed. The spacing has to leave
+  // every neighbouring pair overlapping by more than FEATHER below, or the
+  // cross-fade runs out before the next copy has arrived and the seam comes
+  // back as a thin gap.
   const steps = [
-    [0, 1.0, false],
-    [250, 0.86, true],
-    [520, 0.95, false],
-    [790, 0.81, true],
-    [1030, 0.92, false],
-    [1320, 0.88, true],
-    [1600, 0.97, false],
+    [0, 1.0, false, 0.0],
+    [200, 0.86, true, 0.55],
+    [400, 0.95, false, 0.2],
+    [600, 0.82, true, 0.85],
+    [800, 0.92, false, 0.35],
+    [1000, 0.88, true, 0.05],
+    [1200, 0.97, false, 0.7],
+    [1400, 0.84, true, 0.45],
+    [1600, 1.0, false, 0.15],
   ];
+  const WINDOW = 0.72; // fraction of the source width each copy is cut from
+
+  // How far in from each vertical edge a tile fades to nothing. Without this
+  // the band shows rectangular blocks on a wide screen: the field is full of
+  // semi-transparent out-of-focus background between the flowers, and wherever
+  // two tiles overlap that haze stacks and doubles in density. The tile's own
+  // bounding box then draws the join as a hard vertical line. Ramping the alpha
+  // at the edges makes overlaps cross-fade instead of accumulate.
+  // It has to be wide enough that no ramp ever fully clears before the next
+  // tile's has begun, or the seam reappears as a gap rather than a ridge.
+  const FEATHER = 150;
+
+  const bodyW = width;
+  const bodyH = Math.round(height * 0.66);
+  const winW = Math.round(bodyW * WINDOW);
+
   const tiles = [];
-  for (const [left, scale, flip] of steps) {
-    let t = sharp(body).resize({ height: Math.round(H * scale) });
+  for (const [left, scale, flip, xFrac] of steps) {
+    let t = sharp(body)
+      .extract({
+        left: Math.round((bodyW - winW) * xFrac),
+        top: 0,
+        width: winW,
+        height: bodyH,
+      })
+      .resize({ height: Math.round(H * scale) });
     if (flip) t = t.flop();
-    const input = await t.png().toBuffer();
-    const m = await sharp(input).metadata();
-    tiles.push({ input, left, top: H - m.height });
+    const buf = await t.png().toBuffer();
+    const { width: tw, height: th } = await sharp(buf).metadata();
+
+    // A mask whose alpha ramps in from each side, multiplied into the tile.
+    // `dest-in` keeps the destination weighted by the mask's alpha, which is
+    // exactly alpha = tile.alpha * ramp.
+    // The band's own two ends keep hard edges. They sit outside the viewport
+    // once the image is scaled to cover the width, and fading them would thin
+    // the field to nothing exactly where the screen edge cuts it.
+    const isFirst = left === steps[0][0];
+    const isLast = left === steps[steps.length - 1][0];
+
+    const ramp = Buffer.alloc(tw * th * 4);
+    for (let x = 0; x < tw; x++) {
+      const fromLeft = isFirst ? Infinity : x;
+      const fromRight = isLast ? Infinity : tw - 1 - x;
+      const a = Math.round(255 * Math.min(1, Math.min(fromLeft, fromRight) / FEATHER));
+      for (let y = 0; y < th; y++) {
+        const p = (y * tw + x) * 4;
+        ramp[p] = ramp[p + 1] = ramp[p + 2] = 255;
+        ramp[p + 3] = a;
+      }
+    }
+    const input = await sharp(buf)
+      .composite([{ input: ramp, raw: { width: tw, height: th, channels: 4 }, blend: 'dest-in' }])
+      .png()
+      .toBuffer();
+
+    tiles.push({ input, left, top: H - th });
   }
 
   const r = await sharp({

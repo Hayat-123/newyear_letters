@@ -121,17 +121,25 @@ export function Closing() {
           {/* She stands behind the band so the front row of flowers crosses her
               skirt, which is what puts her in the field rather than in front of
               a picture of one. Hidden on narrow screens, where she would sit on
-              top of the copy rather than beside it. */}
-          <Image
-            src="/art/woman.webp"
-            alt=""
-            width={660}
-            height={1150}
-            // Sized to rise only a little above the field. Taller and she
-            // reaches into the footer copy, where she painted straight over the
-            // social links.
-            className="pointer-events-none absolute right-[4%] bottom-[2rem] z-0 hidden h-[clamp(11rem,21vw,17rem)] w-auto md:block"
-          />
+              top of the copy rather than beside it.
+              The wrapper is shell-width on purpose: pinned to the viewport edge
+              she ends up marooned out in the margin on a wide monitor, far from
+              anything else on the page. Aligning her to the same column the text
+              uses puts her at the end of a line the eye is already following. */}
+          <div className="pointer-events-none absolute inset-0 z-0 hidden md:block">
+            <div className="shell relative h-full">
+              <Image
+                src="/art/woman.webp"
+                alt=""
+                width={660}
+                height={1150}
+                // Sized to rise only a little above the field. Taller and she
+                // reaches into the footer copy, where she painted straight over
+                // the social links.
+                className="absolute right-0 bottom-[2rem] h-[clamp(12rem,20vw,18rem)] w-auto"
+              />
+            </div>
+          </div>
 
           <div className="relative z-10 h-[clamp(8rem,20vw,15rem)] w-full">
             <Image
