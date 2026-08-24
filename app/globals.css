@@ -309,17 +309,25 @@
    through green on the way out and overshoots into violet on the way in, and
    neither is a colour this page has any business showing. `bloom-fade` dissolves
    the yellow layer off the blue one underneath, and the flash covers the swap. */
+/* The swap is a hard cut, not a dissolve. Fading the yellow flower out over the
+   blue one means every frame in between is yellow at partial opacity sitting on
+   blue, which composites to a muddy green: the exact colour the two-image
+   approach existed to avoid in the first place. Half a percent of the fall is
+   effectively instantaneous, and it happens under the peak of the flash. */
 @keyframes bloom-fade {
-  0%, 44%   { opacity: 1; }
-  53%, 100% { opacity: 0; }
+  0%, 47%     { opacity: 1; }
+  47.5%, 100% { opacity: 0; }
 }
 
-/* White burst at the moment of the change, so it reads as a trick rather than
-   as a slow tint. */
+/* White burst covering the cut, so the change reads as a trick rather than as a
+   substitution you can catch. It peaks a hair before the swap and is still near
+   full when the swap happens, so the petal is behind white at the moment it
+   changes. */
 @keyframes bloom-flash {
   0%, 40%   { opacity: 0; transform: scale(0.5); }
-  48%       { opacity: 0.95; transform: scale(1.5); }
-  62%, 100% { opacity: 0; transform: scale(2.2); }
+  46%       { opacity: 1; transform: scale(1.7); }
+  52%       { opacity: 0.8; transform: scale(1.9); }
+  64%, 100% { opacity: 0; transform: scale(2.3); }
 }
 
 /* The blue petal picks up its own glow once it is the one on show. */
@@ -511,10 +519,21 @@
     transition: none;
   }
 
-  /* The petals have nowhere sensible to rest, and freezing them leaves a row of
-     flowers stuck along the top edge, so the layer comes out altogether. */
-  .petal-layer {
-    display: none;
+  /* The petals stay. Hiding them outright emptied the page of the one thing it
+     is actually about, and Windows reports this preference for anyone who has
+     simply turned animation effects off. They are toned down instead: the spin
+     stops, and the fall slows to a drift.
+
+     All four clock-driven animations have to take the SAME duration here, not
+     just the drift. The colour swap is timed as a percentage of the fall so it
+     lands at mid-screen, and slowing only the fall would leave the flowers
+     changing colour somewhere near the top. */
+  .petal-clock {
+    animation-duration: 45s !important;
+  }
+
+  .petal-spin {
+    animation: none !important;
   }
 
   .card:hover {

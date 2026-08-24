@@ -75,7 +75,7 @@ export function AdeyFall() {
         return (
           <div
             key={i}
-            className="absolute top-0"
+            className="petal-clock absolute top-0"
             style={{
               left: `${p.left}vw`,
               width: p.size,
@@ -87,7 +87,7 @@ export function AdeyFall() {
             }}
           >
             <div
-              className="relative h-full w-full"
+              className="petal-spin relative h-full w-full"
               style={{
                 ['--turn' as string]: `${p.turn}deg`,
                 animation: `spin ${p.spin}s linear ${p.delay}s infinite`,
@@ -99,7 +99,7 @@ export function AdeyFall() {
                 alt=""
                 width={256}
                 height={256}
-                className="absolute inset-0 h-full w-full"
+                className="petal-clock absolute inset-0 h-full w-full"
                 style={{ animation: `bloom-glow ${clock}` }}
               />
               <Image
@@ -107,11 +107,11 @@ export function AdeyFall() {
                 alt=""
                 width={256}
                 height={256}
-                className="absolute inset-0 h-full w-full"
+                className="petal-clock absolute inset-0 h-full w-full"
                 style={{ animation: `bloom-fade ${clock}` }}
               />
               <span
-                className="absolute inset-0 rounded-full bg-[radial-gradient(circle,#ffffff_0%,#cfe0ff80_45%,transparent_70%)]"
+                className="petal-clock absolute inset-0 rounded-full bg-[radial-gradient(circle,#ffffff_0%,#cfe0ff80_45%,transparent_70%)]"
                 style={{ animation: `bloom-flash ${clock}` }}
               />
             </div>
