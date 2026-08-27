@@ -15,7 +15,7 @@ import { ZemenayLogo } from './ZemenayLogo';
 const CONTACT = [
   { label: 'Email', value: 'zemenaytechsolutions@gmail.com', href: 'mailto:zemenaytechsolutions@gmail.com' },
   { label: 'Site', value: 'zemenaytech.com', href: 'https://zemenaytech.com' },
-  { label: 'Where', value: 'Bole, Addis Ababa, Ethiopia' },
+  { label: 'Where', value: 'Piassa, Addis Ababa, Ethiopia' },
 ];
 
 // Where each landed flower comes to rest, as
